@@ -12,7 +12,6 @@ namespace ExcelDocumentCalculator
         {
             string directoryPath = Path.GetDirectoryName(inputFilePath);
             string archiveFilePath = Path.Combine(directoryPath, $"Archive_{DateTime.Now:yyyy_MM_dd}.xlsx");
-            string outputFilePath = Path.Combine(directoryPath, "Summary.xlsx");
             string newWorkingHoursFilePath = Path.Combine(directoryPath, $"NewWorkingHours_{DateTime.Now:yyyy_MM_dd}.xlsx");
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -127,33 +126,6 @@ namespace ExcelDocumentCalculator
                     }
                 }
 
-
-                // Create a summary file with the new format
-                using (var outputPackage = new ExcelPackage())
-                {
-                    var outputWorksheet = outputPackage.Workbook.Worksheets.Add("Summary");
-
-                    // Write headers
-                    outputWorksheet.Cells[1, 1].Value = "Project Summary";
-                    outputWorksheet.Cells[1, 2].Value = "Hours";
-
-                    int row = 2;
-                    foreach (var project in projectData.Values)
-                    {
-                        // Use the function to group dates into periods
-                        string dateRange = GroupDatesIntoPeriods(project.Dates);
-
-                        // Write the formatted output
-                        outputWorksheet.Cells[row, 1].Value = $"{project.ProjectId} - {string.Join(", ", project.Comments)} ({dateRange})";
-                        outputWorksheet.Cells[row, 2].Value = project.TotalHours;
-
-                        row++;
-                    }
-
-                    // Save the result
-                    outputPackage.SaveAs(new FileInfo(outputFilePath));
-                }
-
                 // Create a copy of the input file as an archive
                 File.Copy(inputFilePath, archiveFilePath, true);
 
@@ -203,7 +175,6 @@ namespace ExcelDocumentCalculator
                 Console.WriteLine($"New working hours file saved at: {newWorkingHoursFilePath}");
 
                 Console.WriteLine("Summary created, archive saved, and new working hours updated.");
-                Console.WriteLine($"Summary: {outputFilePath}");
                 Console.WriteLine($"Archive: {archiveFilePath}");
                 Console.WriteLine($"NewWorkingHours: {newWorkingHoursFilePath}");
 
