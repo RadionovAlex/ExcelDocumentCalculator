@@ -8,8 +8,28 @@
         Title="MainWindow" Height="450" Width="800"
         Background="Beige">
     <Grid>
-        <TextBox Text="Sofiia calculator" Height="50" TextAlignment="Justify" FontSize="40" VerticalAlignment="Top" HorizontalAlignment="Center"/>
-        <Button Margin="100,150,100,150" FontSize="40" Click="Button_Click">Choose file</Button>
+        <TextBlock Text="♡ Sofiia calculator" Height="50" TextAlignment="Justify" FontSize="40" VerticalAlignment="Top" HorizontalAlignment="Center"/>
+        <Button Name="btn_selectTemplate" Margin="400,100,50,250" FontSize="20" Click="ChooseTemplate_Click" >Choose invoice template file</Button>
+        <Button x:Name="btn_chooseFile" Margin="400,200,50,150" FontSize="20" Click="ChooseFile_Click">Choose file</Button>
+        
+        <!-- Max Rows in Invoice -->
+        <TextBlock Text="Max Rows in Invoice:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,140,0,0"/>
+        <TextBox Name="txtMaxRowsInInvoice" Width="150" Height="25" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="160,140,0,0" />
+
+        <!-- Min Invoice Volume -->
+        <TextBlock Text="Min Invoice Volume:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,180,0,0"/>
+        <TextBox Name="txtMinInvoiceVolume" Width="150" Height="25" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="160,180,0,0" />
+        
+        <!-- Max Invoice Volume -->
+        <TextBlock Text="Max Invoice Volume:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,220,0,0"/>
+        <TextBox Name="txtMaxInvoiceVolume" Width="150" Height="25" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="160,220,0,0" />
+
+        <!-- Hour Rate -->
+        <TextBlock Text="Hour Rate:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,260,0,0"/>
+        <TextBox Name="txtHourRate" Width="150" Height="25" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="160,260,0,0" />
+
+        <!-- Additional Styling: Horizontal Rule for better separation -->
+        <Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" Fill="Gray" Margin="20,260,20,0"/>
 
     </Grid>
 </Window>
