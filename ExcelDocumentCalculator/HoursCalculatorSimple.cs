@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Globalization; 
 
 namespace ExcelDocumentCalculator
 {
@@ -45,14 +46,16 @@ namespace ExcelDocumentCalculator
                 int ignoreCol = headers.ContainsKey("ignore") ? headers["ignore"] : -1; // Optional column
 
                 var projectData = new Dictionary<string, ProjectSummary>();
-                var rowsToKeep = new List<int>();
+                var rowsToKeep = new List<Tuple<int, DateTime>>();
 
                 for (int i = 2; i <= rows; i++) // Start from 2 to skip the header row
                 {
                     // Check for Ignore column
                     if (ignoreCol > 0 && !string.IsNullOrWhiteSpace(worksheet.Cells[i, ignoreCol].Text))
                     {
-                        rowsToKeep.Add(i);
+                        DateTime keepDate = DateTime.Parse(worksheet.Cells[i, dateCol].Text, CultureInfo.InvariantCulture);
+                        var index = i;
+                        rowsToKeep.Add(Tuple.Create(index, keepDate));
                         continue; // Skip this row for calculation
                     }
 
@@ -117,11 +120,14 @@ namespace ExcelDocumentCalculator
                     // Find all rows in the input file that match this projectId
                     for (int i = 2; i <= rows; i++) // Skip header row
                     {
-                        if (!rowsToKeep.Contains(i) &&
+                        if (!rowsToKeep.Any(x=>x.Item1 == i) &&
                             worksheet.Cells[i, projectIdCol].Text == projectId &&
                             (ignoreCol <= 0 || string.IsNullOrWhiteSpace(worksheet.Cells[i, ignoreCol].Text)))
                         {
-                            rowsToKeep.Add(i);
+                            // Parse the data
+                            var date = DateTime.Parse(worksheet.Cells[i, dateCol].Text, CultureInfo.InvariantCulture);
+                            var index = i;
+                            rowsToKeep.Add(Tuple.Create(index, date));
                         }
                     }
                 }
@@ -151,12 +157,13 @@ namespace ExcelDocumentCalculator
 
                     // Now, fill the required cells with the new data
                     int currentRow = 2;
-                    foreach (var rowIndex in rowsToKeep)  // 'rowsToKeep' should hold the rows you want to keep
+                    rowsToKeep = rowsToKeep.OrderBy(x => x.Item2).ToList();
+                    foreach (var keyValue in rowsToKeep)  // 'rowsToKeep' should hold the rows you want to keep
                     {
                         for (int col = 1; col <= totalColumns; col++)
                         {
                             // Copy the value from the original file to the new file (if applicable)
-                            newWoringHoursSheet.Cells[currentRow, col].Value = worksheet.Cells[rowIndex, col].Text;
+                            newWoringHoursSheet.Cells[currentRow, col].Value = worksheet.Cells[keyValue.Item1, col].Text;
                         }
 
                         // Optionally clear any specific columns if needed (like "Ignore" column)
