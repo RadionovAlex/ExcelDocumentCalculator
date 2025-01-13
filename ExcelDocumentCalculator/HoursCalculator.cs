@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace ExcelDocumentCalculator
 {
-    public class HoursCalculatorSimple
+    public class HoursCalculator
     {
         public void Calculate(string inputFilePath, string invoiceTemplatePath, Action callBack, int maxWritesInInvoice, int moneyMinLimit, int moneyMaxLimit, float hourRate)
         {
@@ -17,12 +17,12 @@ namespace ExcelDocumentCalculator
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-            using (var package = new ExcelPackage(new FileInfo(inputFilePath)))
+
+            using (var originalPackage = new ExcelPackage(new FileInfo(inputFilePath)))
             {
-                var worksheet = package.Workbook.Worksheets[0]; // Assuming the data is in the first worksheet
+                var worksheet = originalPackage.Workbook.Worksheets[0]; // Assuming the data is in the first worksheet
                 var rows = worksheet.Dimension.Rows;
                 var columns = worksheet.Dimension.Columns;
-
                 // Find column indexes dynamically
                 var headers = new Dictionary<string, int>();
                 for (int col = 1; col <= columns; col++)
@@ -44,6 +44,7 @@ namespace ExcelDocumentCalculator
                 int projectIdCol = headers["projectid"];
                 int workDescriptionCol = headers["workdescription"];
                 int ignoreCol = headers.ContainsKey("ignore") ? headers["ignore"] : -1; // Optional column
+                int executorCol = headers.ContainsKey("executor") ? headers["executor"] : -1; 
 
                 var projectData = new Dictionary<string, ProjectSummary>();
                 var rowsToKeep = new List<Tuple<int, DateTime>>();
@@ -73,6 +74,7 @@ namespace ExcelDocumentCalculator
                     double hours = double.Parse(worksheet.Cells[i, hoursCol].Text);
                     string projectId = worksheet.Cells[i, projectIdCol].Text;
                     string comment = worksheet.Cells[i, workDescriptionCol].Text;
+                    
 
                     if (!projectData.ContainsKey(projectId))
                     {
@@ -91,7 +93,25 @@ namespace ExcelDocumentCalculator
                     project.TotalHours += hours;
                     project.DateFrom = project.DateFrom > date ? date : project.DateFrom;
                     project.DateTo = project.DateTo < date ? date : project.DateTo;
-                    project.Comments.Add(comment);
+                    if (comment == null || comment.Equals(string.Empty))
+                    {
+                        // do nothing
+                    }
+                    else
+                    {
+                        var dividedComments = comment.Split(',');
+                        foreach (var dividedComment in dividedComments)
+                        {
+                            var notEmpty = dividedComment.Trim();
+                            if (notEmpty != null && notEmpty != string.Empty)
+                            {
+                                var lowerCase = notEmpty.ToLower();
+                                project.Comments.Add(lowerCase);
+                            }
+                                
+                        }
+                    }
+                    
                     project.Dates.Add(date);
                 }
 
@@ -132,17 +152,15 @@ namespace ExcelDocumentCalculator
                     }
                 }
 
-                // Create a copy of the input file as an archive
-                File.Copy(inputFilePath, archiveFilePath, true);
-
+                originalPackage.SaveAs(new FileInfo(archiveFilePath));
                 
-                // Copy the input file to create a new working hours file
-                File.Copy(inputFilePath, newWorkingHoursFilePath, true);  // Overwrite if exists
-
+                originalPackage.SaveAs(new FileInfo(newWorkingHoursFilePath));
                 // Open the copied file using ExcelPackage
                 using (var newWorkingHoursPackage = new ExcelPackage(new FileInfo(newWorkingHoursFilePath)))
                 {
+                    originalPackage.SaveAs(new FileInfo(newWorkingHoursFilePath));
                     var newWoringHoursSheet = newWorkingHoursPackage.Workbook.Worksheets[0];  // Assuming we're working with the first worksheet
+
                     var totalRows = newWoringHoursSheet.Dimension.Rows;
                     var totalColumns = newWoringHoursSheet.Dimension.Columns;
 
@@ -164,6 +182,7 @@ namespace ExcelDocumentCalculator
                         {
                             // Copy the value from the original file to the new file (if applicable)
                             newWoringHoursSheet.Cells[currentRow, col].Value = worksheet.Cells[keyValue.Item1, col].Text;
+                            newWoringHoursSheet.Cells[currentRow, col].Style.Fill = worksheet.Cells[keyValue.Item1, col].Style.Fill;
                         }
 
                         // Optionally clear any specific columns if needed (like "Ignore" column)

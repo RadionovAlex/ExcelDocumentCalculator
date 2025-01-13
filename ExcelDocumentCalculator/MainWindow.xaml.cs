@@ -119,7 +119,7 @@ namespace ExcelDocumentCalculator
         private void ProcessFile(string filePath, int rowsCount, int minInvoice, int maxInvoice, float hourRate)
         {
             var dirPath = Path.GetDirectoryName(filePath);
-            new HoursCalculatorSimple().Calculate(filePath, _templateFilePath, () => OpenWindowsExplorer(dirPath),rowsCount, minInvoice, maxInvoice, hourRate);
+            new HoursCalculator().Calculate(filePath, _templateFilePath, () => OpenWindowsExplorer(dirPath),rowsCount, minInvoice, maxInvoice, hourRate);
             MessageBox.Show($"Processing file: {filePath}");
         }
 
